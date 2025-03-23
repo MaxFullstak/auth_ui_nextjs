@@ -1,6 +1,6 @@
 "use client";
 
-import { RegisterSchema, TypeRegisterSchema } from "@/features/schemas";
+import { LoginSchema, TypeLoginSchema } from "@/features/schemas";
 import {
   Button,
   Form,
@@ -14,26 +14,25 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTheme } from "next-themes";
 import { useState } from "react";
-import ReCAPTCHA from "react-google-recaptcha";
 import { useForm } from "react-hook-form";
 import { AuthWrapper } from "./AuthWrapper";
 import { toast } from "sonner";
+import ReCAPTCHA from "react-google-recaptcha";
 
-export function RegisterForm() {
+export function LoginForm() {
   const { theme } = useTheme();
   const [recValue, setRecValue] = useState<string | null>(null);
 
-  const form = useForm<TypeRegisterSchema>({
-    resolver: zodResolver(RegisterSchema),
+  const form = useForm<TypeLoginSchema>({
+    resolver: zodResolver(LoginSchema),
     defaultValues: {
       name: "",
       email: "",
       password: "",
-      passwordRepeat: "",
     },
   });
 
-  const onSubmit = (values: TypeRegisterSchema) => {
+  const onSubmit = (values: TypeLoginSchema) => {
     if (recValue) {
       console.log(values);
     } else {
@@ -42,10 +41,10 @@ export function RegisterForm() {
   };
   return (
     <AuthWrapper
-      heading="Регистрация"
+      heading="Войти"
       description="Чтобы войти на сайт введите ваш email и пароль"
-      backButtonLabel="Уже есть аккаунт? Войти"
-      backButtonHref="/auth/login"
+      backButtonLabel="Ещё нет аккаунта? Регистрация"
+      backButtonHref="/auth/register"
       isShowSocial
     >
       <Form {...form}>
@@ -96,27 +95,12 @@ export function RegisterForm() {
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="passwordRepeat"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Повторите пароль</FormLabel>
-                <FormControl>
-                  <Input placeholder="******" type="password" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+          <ReCAPTCHA
+            sitekey={process.env.GOOGLE_RECAPTCHA_SITE_KEY as string}
+            onChange={setRecValue}
+            theme={theme === "light" ? "light" : "dark"}
           />
-          <div className="flex justify-center">
-            <ReCAPTCHA
-              sitekey={process.env.GOOGLE_RECAPTCHA_SITE_KEY as string}
-              onChange={setRecValue}
-              theme={theme === "light" ? "light" : "dark"}
-            />
-          </div>
-          <Button type="submit">Создать аккаунт</Button>
+          <Button type="submit">Войти в аккаунт</Button>
         </form>
       </Form>
     </AuthWrapper>

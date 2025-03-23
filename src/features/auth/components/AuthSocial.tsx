@@ -1,7 +1,19 @@
+import { Button } from "@/shared/components/ui";
+import { FaGoogle, FaYandex } from "react-icons/fa";
+
 export function AuthSocial() {
   return (
     <>
-      <div>AuthSocial</div>
+      <div className="grid grid-cols-2 gap-6">
+        <Button variant="outline">
+          <FaGoogle className="mr-2 size-4" />
+          Google
+        </Button>
+        <Button variant="outline">
+          <FaYandex className="mr-2 size-4" />
+          Яндекс
+        </Button>
+      </div>
       <div className="relative mb-2 space-y-4">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t" />
