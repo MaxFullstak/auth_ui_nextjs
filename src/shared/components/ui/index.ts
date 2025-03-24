@@ -4,5 +4,7 @@ export * from "./DropDownMenu";
 export * from "./Form";
 export * from "./Input";
 export * from "./Label";
-export * from "./ToggleTheme";
+export * from "./Loader";
 export * from "./Sonner";
+export * from "./ToggleTheme";
+
