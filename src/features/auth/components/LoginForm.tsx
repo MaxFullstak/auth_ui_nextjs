@@ -1,6 +1,13 @@
 "use client";
 
-import { LoginSchema, TypeLoginSchema } from "@/features/auth/schemas";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useTheme } from "next-themes";
+import Link from "next/link";
+import { useState } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+
 import {
   Button,
   Form,
@@ -11,18 +18,16 @@ import {
   FormMessage,
   Input,
 } from "@/shared/components/ui";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useTheme } from "next-themes";
-import { useState } from "react";
-import ReCAPTCHA from "react-google-recaptcha";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+
 import { useLoginMutation } from "../hooks";
+
+import { LoginSchema, TypeLoginSchema } from "../schemas";
 import { AuthWrapper } from "./AuthWrapper";
 
 export function LoginForm() {
   const { theme } = useTheme();
-  const [recValue, setRecValue] = useState<string | null>(null);
+  const [recaptchaValue, setRecaptchaValue] = useState<string | null>(null);
+  const [isShowTwoFactor, setIsShowFactor] = useState(false);
 
   const form = useForm<TypeLoginSchema>({
     resolver: zodResolver(LoginSchema),
@@ -31,20 +36,22 @@ export function LoginForm() {
       password: "",
     },
   });
-  const { login, isLoadingLogin } = useLoginMutation();
+
+  const { login, isLoadingLogin } = useLoginMutation(setIsShowFactor);
 
   const onSubmit = (values: TypeLoginSchema) => {
-    if (recValue) {
-      login({ values, recaptcha: recValue });
+    if (recaptchaValue) {
+      login({ values, recaptcha: recaptchaValue });
     } else {
       toast.error("Пожалуйста, завершите reCAPTCHA");
     }
   };
+
   return (
     <AuthWrapper
       heading="Войти"
       description="Чтобы войти на сайт введите ваш email и пароль"
-      backButtonLabel="Ещё нет аккаунта? Регистрация"
+      backButtonLabel="Еще нет аккаунта? Регистрация"
       backButtonHref="/auth/register"
       isShowSocial
     >
@@ -53,47 +60,80 @@ export function LoginForm() {
           onSubmit={form.handleSubmit(onSubmit)}
           className="grid gap-2 space-y-2"
         >
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Почта</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="ivan@example.ru(com)"
-                    type="email"
-                    disabled={isLoadingLogin}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Пароль</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="******"
-                    type="password"
-                    {...field}
-                    disabled={isLoadingLogin}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <ReCAPTCHA
-            sitekey={process.env.GOOGLE_RECAPTCHA_SITE_KEY as string}
-            onChange={setRecValue}
-            theme={theme === "light" ? "light" : "dark"}
-          />
+          {isShowTwoFactor && (
+            <FormField
+              control={form.control}
+              name="code"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Код</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="123456"
+                      disabled={isLoadingLogin}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+          {!isShowTwoFactor && (
+            <>
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Почта</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="ivan@example.com"
+                        disabled={isLoadingLogin}
+                        type="email"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Пароль</FormLabel>
+                      <Link
+                        href="/auth/reset-password"
+                        className="ml-auto inline-block text-sm underline"
+                      >
+                        Забыли пароль?
+                      </Link>
+                    </div>
+                    <FormControl>
+                      <Input
+                        placeholder="******"
+                        disabled={isLoadingLogin}
+                        type="password"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </>
+          )}
+          <div className="flex justify-center">
+            <ReCAPTCHA
+              sitekey={process.env.GOOGLE_RECAPTCHA_SITE_KEY as string}
+              onChange={setRecaptchaValue}
+              theme={theme === "light" ? "light" : "dark"}
+            />
+          </div>
           <Button type="submit" disabled={isLoadingLogin}>
             Войти в аккаунт
           </Button>

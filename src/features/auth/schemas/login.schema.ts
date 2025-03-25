@@ -7,6 +7,7 @@ export const LoginSchema = z.object({
   password: z.string().min(6, {
     message: "Пароль минимум 6 символов",
   }),
+  code: z.optional(z.string())
 });
 
 
